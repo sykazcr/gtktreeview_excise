@@ -8,20 +8,21 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <fstream>
 #include <sstream>  // ※istringstreamを使うために必要
 // 名前空間
-using namespace std;
+//using namespace std;
 //
 //  CSVを取得する
 //      filename    読み込むファイル名
 //      table       読み込んだCSVの内容
 //      delimiter   区切り文字(今回はデフォルトでカンマ)
 //
-bool GetContents(const string& filename, vector<vector<string>>& table, const char delimiter = ',')
+bool GetContents(const std::string& filename, std::vector<std::vector<std::string>>& table, const char delimiter = ',')
 {
 	// ファイルを開く
-	fstream filestream(filename);
+    std::fstream filestream(filename);
 	if (!filestream.is_open())
 	{
 		// ファイルが開けなかった場合は終了する
@@ -32,13 +33,15 @@ bool GetContents(const string& filename, vector<vector<string>>& table, const ch
 	while (!filestream.eof())
 	{
 		// １行読み込む
-		string buffer;
-		filestream >> buffer;
+        std::string buffer;
+        getline(filestream, buffer);
+//		filestream >> buffer;       // ERROR!
+            std::cout << " IN-LINE: " << buffer << "\n";
 
 		// ファイルから読み込んだ１行の文字列を区切り文字で分けてリストに追加する
-		vector<string> record;              // １行分の文字列のリスト
-		istringstream streambuffer(buffer); // 文字列ストリーム
-		string token;                       // １セル分の文字列
+        std::vector<std::string> record;              // １行分の文字列のリスト
+        std::istringstream streambuffer(buffer); // 文字列ストリーム
+        std::string token;                       // １セル分の文字列
 		while (getline(streambuffer, token, delimiter))
 		{
 			// １セル分の文字列をリストに追加する
@@ -58,8 +61,8 @@ int main(int argc, const char * argv[])
 {
 	// 変数を定義する
 	bool status = false;    // メソッドのステータス
-	string filename = "sample.csv"; // ファイル名
-	vector<vector<string>> table;   // 読み込んだCSVファイルの内容
+    std::string filename = "data.csv"; // ファイル名
+    std::vector<std::vector<std::string>> table;   // 読み込んだCSVファイルの内容
 
 	// CSVファイルの内容を取得する
 	status = GetContents(filename, table);
@@ -69,22 +72,28 @@ int main(int argc, const char * argv[])
 		return -1;
 	}
 
+    std::for_each(table.begin(), table.end(), [](std::vector<std::string> v){
+                std::for_each(v.begin(), v.end(), [](std::string s){
+                        std::cout << "s=" << s << std::endl;
+                        });
+            });
+
 	// 確認のためにコンソールに内容を出力する
 	for (int row = 0; row < table.size(); row++)
 	{
-		vector<string> record;  // １行分の内容
+        std::vector<std::string> record;  // １行分の内容
 		record = table[row];    // １行分読み込む
 		// １セルずつ読み込んでコンソールに出力する
 		for (int column = 0; column < record.size(); column++)
 		{
-			cout << record[column];
+            std::cout << record[column];
 			// 末尾の列でない場合はカンマを出力する
 			if (column < record.size() - 1)
 			{
-				cout << ",";
+                std::cout << ",";
 			}
 		}
-		cout << endl;
+        std::cout << std::endl;
 	}
 
 	return 0;
