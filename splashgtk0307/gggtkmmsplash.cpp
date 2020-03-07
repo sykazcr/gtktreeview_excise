@@ -280,18 +280,46 @@ MainWindow::MainWindow()
 //-
 App::App(const std::string& dir, int *argc, char ***argv) 
 {
+    Glib::set_application_name("TTT Studio");
+
     Splash splash_screen;
     splash_screen.show();
-	splash_screen.set_default_size(300, 450);
-    splash_screen.present();
-    sleep(2);
+    SuperCallback synfig_init_cb(splash_screen.get_callback(),0,9000,10000);
+    SuperCallback studio_init_cb(splash_screen.get_callback(),9000,10000,10000);
+
+    studio_init_cb.task("Loading Settings...");
+    studio_init_cb.amount_complete(1900,10000);
+    sleep(1);
+    studio_init_cb.task("Loading ...");
+    studio_init_cb.amount_complete(2900,10000);
+    sleep(1);
+    studio_init_cb.task("Loading ZZZ...");
+    studio_init_cb.amount_complete(6900,10000);
+    sleep(1);
+    studio_init_cb.task("Loading Basic Settings...");
+    studio_init_cb.amount_complete(9900,10000);
+    sleep(1);
+    studio_init_cb.task("Done.");
+    studio_init_cb.amount_complete(10000,10000);
+    sleep(1);
+
+
+	main_window = new MainWindow();
+	main_window->set_default_size(300, 450);
+    main_window->show();
+    //main_window->present();
+
+    splash_screen.hide();
+
+//    Splash splash_screen;
+//    splash_screen.show();
+//	splash_screen.set_default_size(300, 450);
+//    splash_screen.present();
+//    sleep(2);
 //splash_screen.set_auto_startup_notification(true);
-    sleep(2);
+//    sleep(2);
 //splash_screen.set_auto_startup_notification(true);
 
-//	main_window = new MainWindow();
-//	main_window->set_default_size(300, 450);
-//    main_window->present();
 }
 
 void App::process_all_events(long unsigned int us)
