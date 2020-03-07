@@ -52,6 +52,7 @@ public:
 
     MainWindow         *main_window;
     static void process_all_events(long unsigned int us=1);
+    static void apply_gtk_settings();
 };
 
 //-
@@ -136,6 +137,7 @@ public:
 
 	SplashProgress(Splash &splash):splash(splash) { }
 	virtual bool task(const std::string &task);
+    virtual bool amount_complete(int current, int total);
 
 }; // end of SplashProgress
 
@@ -154,6 +156,18 @@ bool SplashProgress::task(const std::string &task)
     info(task);
 
     App::process_all_events(1);
+    return true;
+}
+
+bool SplashProgress::amount_complete(int current, int total)
+{
+    if(splash.progressbar)
+    {
+        splash.progressbar->set_fraction((float)current/(float)total);
+        splash.progressbar->show();
+    }
+
+    App::process_all_events();
     return true;
 }
 
@@ -186,6 +200,9 @@ Splash::Splash():
 	// Create the progress bar
 	progressbar = manage(new class Gtk::ProgressBar());
 	progressbar->set_size_request(image_w,24);
+    // progressbar height must set by css data.
+    progressbar->override_background_color(Gdk::RGBA("grey"));
+    //progressbar->override_color(Gdk::RGBA("blue"));
 
 	// Create the current task label
 	tasklabel = manage(new class Gtk::Label());
@@ -213,16 +230,16 @@ Splash::Splash():
   	frame->add(*fixed);
 
 	// Set up the parameters for this pop-up window
-	set_title("Synfig Studio " VERSION);
+	set_title("TTT Gtkmm Demo" VERSION);
 	set_modal(false);
 	property_window_position().set_value(Gtk::WIN_POS_CENTER);
 	set_resizable(false);
 	set_type_hint(Gdk::WINDOW_TYPE_HINT_SPLASHSCREEN);
 	set_auto_startup_notification(false);
 	try {
-		set_icon_from_file(imagepath+"synfig_icon."+IMAGE_EXT);
+		set_icon_from_file(imagepath+"logo_icon."+IMAGE_EXT);
 	} catch(...) {
-		warning("Unable to open "+imagepath+"synfig_icon."+IMAGE_EXT);
+		warning("Unable to open "+imagepath+"logo_icon."+IMAGE_EXT);
 	}
 	add(*frame);
 
@@ -282,9 +299,11 @@ App::App(const std::string& dir, int *argc, char ***argv)
 {
     Glib::set_application_name("TTT Studio");
 
+    App::apply_gtk_settings();
+
     Splash splash_screen;
     splash_screen.show();
-    SuperCallback synfig_init_cb(splash_screen.get_callback(),0,9000,10000);
+    SuperCallback init_cb(splash_screen.get_callback(),0,9000,10000);
     SuperCallback studio_init_cb(splash_screen.get_callback(),9000,10000,10000);
 
     studio_init_cb.task("Loading Settings...");
@@ -299,10 +318,17 @@ App::App(const std::string& dir, int *argc, char ***argv)
     studio_init_cb.task("Loading Basic Settings...");
     studio_init_cb.amount_complete(9900,10000);
     sleep(1);
+    std::string strinfo("Loading ...");
+    for(int i=0; i<10; ++i) {
+        strinfo += std::to_string(i);
+        studio_init_cb.task(strinfo);
+        studio_init_cb.amount_complete(1000*i,10000);
+        sleep(2);
+    }
+
     studio_init_cb.task("Done.");
     studio_init_cb.amount_complete(10000,10000);
     sleep(1);
-
 
 	main_window = new MainWindow();
 	main_window->set_default_size(300, 450);
@@ -329,6 +355,64 @@ void App::process_all_events(long unsigned int us)
 		while(events_pending())
 			iteration(false);
 		Glib::usleep(us);
+	}
+}
+
+
+void App::apply_gtk_settings()
+{
+	GtkSettings *gtk_settings;
+	gtk_settings = gtk_settings_get_default ();
+
+	gchar *theme_name=getenv("SYNFIG_GTK_THEME");
+	if(theme_name) {
+		g_object_set (G_OBJECT (gtk_settings), "gtk-theme-name", theme_name, NULL);
+	}
+
+	// dark theme
+	g_object_set (G_OBJECT (gtk_settings), "gtk-application-prefer-dark-theme", 0, NULL);
+
+	// enable menu icons
+	g_object_set (G_OBJECT (gtk_settings), "gtk-menu-images", TRUE, NULL);
+
+	// fix CSS
+	Glib::ustring data;
+	// Fix GtkPaned (big margin makes it hard to grab first keyframe))
+	data += "GtkPaned { margin: 2px; }\n";
+	data += ".button                            { padding-left: 4px; padding-right: 4px; }\n";
+	data += ".button                            { padding-top: 0px; padding-bottom: 0px; }\n";
+	data += ".button *                          { padding-top: 4px; padding-bottom: 4px; }\n";
+	data += ".button > GtkBox                   { padding-top: 0px; padding-bottom: 0px; }\n";
+	data += ".button > GtkBox > *               { padding-top: 4px; padding-bottom: 4px; }\n";
+	data += ".button > GtkLabel                 { padding-top: 0px; padding-bottom: 0px; }\n";
+	data += "GtkComboBox > .button > GtkBox > * { padding-top: 0px; padding-bottom: 0px; }\n";
+	data += ".entry                             { padding-top: 0px; padding-bottom: 0px; }\n";
+	data += "progress, trough 					{ min-height: 20px; }\n";
+#if GTKMM_MAJOR_VERSION < 3 || (GTKMM_MAJOR_VERSION == 3 && GTKMM_MINOR_VERSION < 22)
+	// following css works in old versions of gtk
+	data += "button { padding: 0px; }\n";
+#else
+	// following css works for gtk 3.22:
+	data += "entry, spinbutton { min-height: 16px; }\n";
+	data += "button { min-height: 16px; min-width: 16px; padding: 0px; }\n";
+#endif
+	data += "button > box { padding: 5px; }\n";
+	data += "button > image { padding: 5px; }\n";
+	data += "combobox > box > button > box { padding-top: 0px; padding-bottom: 0px; }\n";
+	g_object_get (G_OBJECT (gtk_settings), "gtk-theme-name", &theme_name, NULL);
+	if ( Glib::ustring(theme_name) == "Adwaita" )
+		data += ".window-frame, .window-frame:backdrop { box-shadow: none; margin: 0; }\n";
+	g_free(theme_name);
+
+	if (!data.empty()) {
+		Glib::RefPtr<Gtk::CssProvider> css = Gtk::CssProvider::create();
+		try {
+			css->load_from_data(data);
+		} catch (Gtk::CssProviderError &e) {
+			printf("Failed to load css rules. %s", e.what().c_str());
+		}
+		Glib::RefPtr<Gdk::Screen> screen = Gdk::Screen::get_default();
+		Gtk::StyleContext::add_provider_for_screen(screen,css, GTK_STYLE_PROVIDER_PRIORITY_USER);
 	}
 }
 
