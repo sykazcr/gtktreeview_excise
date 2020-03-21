@@ -41,11 +41,22 @@ void Pane_Bars:: refresh()
 }
 
 MainWin::MainWin()
+    :m_Label1("CAT", false),
+    m_Label2("DOGGGG", false)
 {
-    Pane_Bars pane;
-    m_hbox.pack_start( pane);
     m_frm.set_label("Bars");
+    add( m_frm );
     m_frm.add(m_hbox);
+    pane.set_row_spacing(4);
+    pane.set_column_spacing(4);
+
+    m_hbox.set_border_width(8);
+    m_hbox.pack_start( pane , Gtk::PACK_SHRINK);
+    pane.set_size_request(600,400);
+    pane.attach(m_Label1, 0, 0, 1, 1);
+    pane.attach(m_Label2, 1, 1, 1, 1);
+    set_border_width( 16 );
+    show_all();
 }
 
 

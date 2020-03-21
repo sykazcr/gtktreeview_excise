@@ -1,4 +1,4 @@
-//#progma once
+#pragma once
 #include <gtkmm.h>
 #include <gdkmm/color.h>
 #include <vector>
@@ -77,6 +77,10 @@ class MainWin : public Gtk::Window
 {
     Gtk::HBox m_hbox;
     Gtk::Frame m_frm;
+    Gtk::Label m_Label1, m_Label2;
+//    Gtk::Grid pane;
+    Pane_Bars pane;
+    
 
 public:
     MainWin();
