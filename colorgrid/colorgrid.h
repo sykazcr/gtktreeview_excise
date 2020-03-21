@@ -73,5 +73,14 @@ public:
 };
 
 
+class MainWin : public Gtk::Window
+{
+    Gtk::HBox m_hbox;
+    Gtk::Frame m_frm;
+
+public:
+    MainWin();
+};
+
 
 
