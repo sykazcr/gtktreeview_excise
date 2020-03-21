@@ -65,8 +65,10 @@ public:
     const PaletteSets& get_palette() const { return palettesets_; }
 
     int size() const;
+    Gdk::Color get_color(int i)const;
 
     void refresh();
+    void set_default_palette();
 
     Pane_Bars();
     ~Pane_Bars();
@@ -78,7 +80,6 @@ class MainWin : public Gtk::Window
     Gtk::HBox m_hbox;
     Gtk::Frame m_frm;
     Gtk::Label m_Label1, m_Label2;
-//    Gtk::Grid pane;
     Pane_Bars pane;
     
 
