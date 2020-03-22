@@ -94,7 +94,8 @@ PaletteSets PaletteSets::load_from_file(const std::string& f)
 //-------------------------------------------------------------
 Pane_Bars::Pane_Bars()
 {
-    add(table);
+//    add(table);
+    attach(table, 3, 0, 3, 1);
     set_default_palette();
     show_all_children();
 }

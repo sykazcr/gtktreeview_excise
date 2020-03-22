@@ -1,0 +1,177 @@
+" ~/.vimrc
+"
+
+" no vi compat
+set nocompatible
+"tt setting
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set autoindent
+set smartindent
+set number
+
+" filetype func off
+filetype off
+
+" initialize vundle
+set rtp+=~/.vim/bundle/Vundle.vim
+
+call vundle#begin()
+" start- all plugins below
+
+Plugin 'VundleVim/Vundle.vim'
+Plugin 'morhetz/gruvbox'
+Plugin 'itchyny/lightline.vim'
+Plugin 'scrooloose/nerdtree.git'
+Plugin 'davidhalter/jedi-vim'
+
+" stop - all plugins above
+call vundle#end()
+
+" filetype func on
+filetype plugin indent on
+
+" set color
+"colorscheme gruvbox
+set background=dark
+set colorcolumn=180
+"let g:gruvbox_contrast_dark='soft'
+
+" lightline fix
+set laststatus=2
+
+" NERDTree shortcut
+map <C-n> :NERDTreeToggle<CR>
+
+"=========
+"vim-clang
+"=========
+" 'Shougo/neocomplete.vim' {{{
+let g:neocomplete#enable_at_startup = 1
+if !exists('g:neocomplete#force_omni_input_patterns')
+        let g:neocomplete#force_omni_input_patterns = {}
+endif
+let g:neocomplete#force_overwrite_completefunc = 1
+let g:neocomplete#force_omni_input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
+let g:neocomplete#force_omni_input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+"""}}}
+
+" 'justmao945/vim-clang' {{{
+
+" disable auto completion for vim-clanG
+let g:clang_auto = 0
+let g:clang_complete_auto = 0
+let g:clang_auto_select = 0
+let g:clang_use_library = 1
+
+" default 'longest' can not work with neocomplete
+let g:clang_c_completeopt   = 'menuone'
+let g:clang_cpp_completeopt = 'menuone'
+
+let g:clang_exec = 'clang'
+let g:clang_format_exec = 'clang-format'
+
+let g:clang_c_options = '-std=c11'
+let g:clang_cpp_options = '
+  \ -std=c++1z 
+  \ -stdlib=libc++ 
+  \ -pedantic-errors
+  \ -I/usr/include/cairo/
+  \ -I/usr/include/pango-1.0/
+  \ -I/usr/include/glib-2.0/
+  \ -I/usr/include/glib-2.0/gdk/
+  \ -I/usr/include/gtk-3.0/
+  \ -I/usr/include/gtkmm-3.0/
+  \ -I/usr/include/gdkmm-3.0/
+  \ -I/usr/include/glibmm-2.4/
+  \ -I/usr/lib/x86_64-linux-gnu/glibmm-2.4/
+  \ -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/
+  \ -I/usr/include/c++/7/ 
+  \ '
+
+" }}}
+
+"==================================================================================
+"clang-format
+function! s:clang_format()
+    let now_line = line(".")
+    exec ":%! clang-format"
+    exec ":" . now_line
+endfunction
+
+if executable('clang-format')
+    augroup cpp_clang_format
+     autocmd!
+"     autocmd BufWrite,FileWritePre,FileAppendPre *.[ch]pp call s:clang_format()
+    augroup END
+endif
+
+"==========
+"dein.vim
+"==========
+if &compatible
+  set nocompatible
+endif
+set runtimepath+=~/.vim/dein/repos/github.com/Shougo/dein.vim
+
+call dein#begin(expand('~/.vim/dein'))
+call dein#add('Shougo/dein.vim')
+
+call dein#add('Shougo/neocomplete.vim')
+call dein#add('Shougo/vimproc.vim', {'build': 'make'})
+call dein#add('justmao945/vim-clang')
+call dein#add('Shougo/neoinclude.vim')
+
+call dein#end()
+
+syntax on
+"colorscheme molokai
+
+" colorschemeへ上書き
+"highlight Normal ctermbg=none       " iTerm2での半透明優先
+"highlight Comment ctermfg=49        " コメントの色
+highlight Visual term=reverse cterm=reverse guibg=Grey
+
+
+"20200322 
+" 入力キーの辞書
+let s:compl_key_dict = {
+      \ char2nr("\<C-l>"): "\<C-x>\<C-l>",
+      \ char2nr("\<C-n>"): "\<C-x>\<C-n>",
+      \ char2nr("\<C-p>"): "\<C-x>\<C-p>",
+      \ char2nr("\<C-k>"): "\<C-x>\<C-k>",
+      \ char2nr("\<C-t>"): "\<C-x>\<C-t>",
+      \ char2nr("\<C-i>"): "\<C-x>\<C-i>",
+      \ char2nr("\<C-]>"): "\<C-x>\<C-]>",
+      \ char2nr("\<C-f>"): "\<C-x>\<C-f>",
+      \ char2nr("\<C-d>"): "\<C-x>\<C-d>",
+      \ char2nr("\<C-v>"): "\<C-x>\<C-v>",
+      \ char2nr("\<C-u>"): "\<C-x>\<C-u>",
+      \ char2nr("\<C-o>"): "\<C-x>\<C-o>",
+      \ char2nr('s'): "\<C-x>s",
+      \ char2nr("\<C-s>"): "\<C-x>s"
+      \}
+" 表示メッセージ
+let s:hint_i_ctrl_x_msg = join([
+      \ '<C-l>: While lines',
+      \ '<C-n>: keywords in the current file',
+      \ "<C-k>: keywords in 'dictionary'",
+      \ "<C-t>: keywords in 'thesaurus'",
+      \ '<C-i>: keywords in the current and included files',
+      \ '<C-]>: tags',
+      \ '<C-f>: file names',
+      \ '<C-d>: definitions or macros',
+      \ '<C-v>: Vim command-line',
+      \ "<C-u>: User defined completion ('completefunc')",
+      \ "<C-o>: omni completion ('omnifunc')",
+      \ "s: Spelling suggestions ('spell')"
+      \], "\n")
+function! s:hint_i_ctrl_x() abort
+  echo s:hint_i_ctrl_x_msg
+  let c = getchar()
+  return get(s:compl_key_dict, c, nr2char(c))
+endfunction
+ 
+inoremap <expr> <C-x>  <SID>hint_i_ctrl_x()
