@@ -150,17 +150,18 @@ void Pane_Bars:: refresh()
 #if 0
         "button { border: none; border-radius: 0%; }"
 #endif
-        "button {background-image: image(cyan); border:none;}\
-        button:hover {background-image: image(#eb8c34);}\
-        button:active {background-image: image(yellow);}"
-        );
+        "button { background-image: url(\"./image/blue.png\"); border: none; border-radius: 1%; }\
+        button:checked {background-image: url(\"./image/green.png\");}\
+        button:hover {background-image: image(#eb8c34);}"
+    );
     for(int i=0;i<size();i++) {
         Gtk::RadioButton* radi(Gtk::manage(new Gtk::RadioButton()));
         radi->set_mode(false); // not show maru.
-        radi->set_size_request(200,10);
+        radi->set_size_request(200,12);
 		int c(i%width),r(i/width);
         radi->get_style_context()->add_provider(
                     css_provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+        radi->set_group(gr);
 		tableR.attach(*radi, c, r, 1, 1);
     }
     table.show_all();
